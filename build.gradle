@@ -1,15 +1,15 @@
-// الطريقة الحديثة لتعريف الإضافات
-plugins {
-    id 'com.android.application' version '8.1.1' apply false
-    id 'com.onesignal.androidsdk.onesignal-gradle-plugin' version '0.14.0' apply false
-}
-
 buildscript {
     repositories {
         google()
         mavenCentral()
         gradlePluginPortal()
     }
+}
+
+// الطريقة الحديثة لتعريف الإضافات
+plugins {
+    id 'com.android.application' version '8.1.1' apply false
+    id 'com.onesignal.androidsdk.onesignal-gradle-plugin' version '0.14.0' apply false
 }
 
 allprojects {
