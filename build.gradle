@@ -2,6 +2,8 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        // هذا هو السطر الجديد الذي سيحل المشكلة
+        gradlePluginPortal() 
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.1.1'
@@ -12,5 +14,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // أضفناه هنا أيضاً للاحتياط
+        gradlePluginPortal() 
     }
 }
