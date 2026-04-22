@@ -1,1 +1,62 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: cirrusci/flutter:3.19.0
+    steps:
+      - checkout
+      - run:
+          name: "بناء التطبيق وإعداد الإشعارات"
+          command: |
+            flutter create skydata_app --org com.skydata.app
+            cd skydata_app
+            
+            flutter pub add webview_flutter onesignal_flutter
+            
+            cat << 'EOF' > lib/main.dart
+            import 'package:flutter/material.dart';
+            import 'package:webview_flutter/webview_flutter.dart';
+            import 'package:onesignal_flutter/onesignal_flutter.dart';
 
+            void main() {
+              WidgetsFlutterBinding.ensureInitialized();
+              OneSignal.initialize("48370ee9-5129-4aa7-994a-d3dd8368c5f7");
+              OneSignal.Notifications.requestPermission(true);
+              runApp(const MaterialApp(debugShowCheckedModeBanner: false, home: SkyDataApp()));
+            }
+
+            class SkyDataApp extends StatefulWidget {
+              const SkyDataApp({Key? key}) : super(key: key);
+              @override
+              State<SkyDataApp> createState() => _SkyDataAppState();
+            }
+
+            class _SkyDataAppState extends State<SkyDataApp> {
+              late final WebViewController controller;
+              @override
+              void initState() {
+                super.initState();
+                controller = WebViewController()
+                  ..setJavaScriptMode(JavaScriptMode.unrestricted)
+                  ..loadRequest(Uri.parse('https://skydata.bond'));
+              }
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(body: SafeArea(child: WebViewWidget(controller: controller)));
+              }
+            }
+            EOF
+
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
+            sed -i 's/minSdkVersion 19/minSdkVersion 21/g' android/app/build.gradle
+            
+            flutter build apk --release
+
+      - store_artifacts:
+          path: skydata_app/build/app/outputs/flutter-apk/app-release.apk
+          destination: SkyData-App.apk
+
+workflows:
+  build_workflow:
+    jobs:
+      - build
