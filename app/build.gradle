@@ -14,10 +14,24 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    buildTypes {
+        release {
+            debuggable false
+        }
+        debug {
+            debuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
 }
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    // تم تحديث إصدار OneSignal إلى إصدار ثابت حديث
-    implementation 'com.onesignal:OneSignal:4.8.7' 
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.onesignal:OneSignal:4.8.7'
 }
