@@ -1,20 +1,20 @@
+// الطريقة الحديثة لتعريف الإضافات
+plugins {
+    id 'com.android.application' version '8.1.1' apply false
+    id 'com.onesignal.androidsdk.onesignal-gradle-plugin' version '0.14.0' apply false
+}
+
 buildscript {
     repositories {
         google()
         mavenCentral()
-        // هذا هو السطر الجديد الذي سيحل المشكلة
-        gradlePluginPortal() 
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.1'
-        classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:[0.12.10, 0.99.99]'
+        gradlePluginPortal()
     }
 }
+
 allprojects {
     repositories {
         google()
         mavenCentral()
-        // أضفناه هنا أيضاً للاحتياط
-        gradlePluginPortal() 
     }
 }
