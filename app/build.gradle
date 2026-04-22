@@ -18,5 +18,6 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
+    // تم تحديث إصدار OneSignal إلى إصدار ثابت حديث
+    implementation 'com.onesignal:OneSignal:4.8.7' 
 }
