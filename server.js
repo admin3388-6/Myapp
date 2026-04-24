@@ -13,7 +13,10 @@ const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 
-// الاتصال بقاعدة بيانات Supabase باستخدام المفاتيح التي ستضعها في Render
+// حل مشكلة Render Proxy (لكي يعمل Rate Limiter بشكل صحيح ويقرأ الـ IP)
+app.set('trust proxy', 1);
+
+// الاتصال بقاعدة بيانات Supabase
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 // إعدادات الحماية
@@ -85,15 +88,22 @@ app.post('/api/auth/process', async (req, res) => {
             if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) return res.status(400).json({ error: 'اسم المستخدم يجب أن يكون من 3 إلى 20 حرف ورقم إنجليزي فقط.' });
             if (password.length < 6) return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.' });
 
-            // التحقق من عدم وجود الإيميل أو اسم المستخدم مسبقاً
+            // التحقق في جداولنا
             const { data: existUser } = await supabase.from('users').select('id').or(`email.eq.${email},username.eq.${username}`).single();
             if (existUser) return res.status(400).json({ error: 'البريد الإلكتروني أو اسم المستخدم مستخدم بالفعل.' });
 
-            // إنشاء الحساب في Supabase Auth
+            // إنشاء الحساب في Supabase Auth (تم تعديل هذه الجزئية لمنع الانهيار)
             const { data: authData, error: authError } = await supabase.auth.admin.createUser({
                 email, password, email_confirm: true
             });
-            if (authError) throw authError;
+            
+            if (authError) {
+                // إذا كان الخطأ أن الإيميل موجود، نرد برسالة واضحة بدلاً من إيقاف الخادم
+                if (authError.code === 'email_exists') {
+                    return res.status(400).json({ error: 'هذا البريد الإلكتروني مسجل مسبقاً، الرجاء تسجيل الدخول.' });
+                }
+                return res.status(400).json({ error: 'حدث خطأ أثناء التسجيل: ' + authError.message });
+            }
 
             // إدخال تفاصيل الحساب في جدول users
             await supabase.from('users').insert([{
@@ -133,7 +143,7 @@ app.post('/api/auth/process', async (req, res) => {
             return res.status(200).json({ success: true, message: 'تم تسجيل الدخول المشفر بنجاح.' });
         }
     } catch (err) {
-        console.error(err);
+        console.error("Critical Server Error:", err);
         return res.status(500).json({ error: 'خطأ داخلي في الخادم.' });
     }
 });
@@ -156,7 +166,7 @@ app.post('/api/auth/forgot', async (req, res) => {
         subject: 'استعادة كلمة المرور',
         html: `<h2>استعادة كلمة المرور الخاصة بك</h2>
                <p>لقد طلبت استعادة كلمة المرور. الرمز الخاص بك هو:</p>
-               <h1 style="background:#eee;padding:15px;text-align:center;letter-spacing:10px;">${otp}</h1>
+               <h1 style="background:#eee;padding:15px;text-align:center;letter-spacing:10px;color:black;">${otp}</h1>
                <p>ينتهي هذا الرمز خلال 5 دقائق.</p>
                <hr>
                <p style="color:red;font-weight:bold;">تنبيه أمني: إذا لم تكن أنت من طلب هذا، اضغط على الرابط التالي فوراً لإيقاف العملية وتأمين الحساب:</p>
